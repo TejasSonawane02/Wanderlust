@@ -125,3 +125,9 @@ body {
     background-color: #fa424d;
     border: none !important;
 } 
+
+/* Make footer stick to bottom when page content is short */
+.site-footer {
+    margin-top: auto;
+    width: 100%;
+}
