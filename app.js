@@ -9,6 +9,7 @@ import methodOverride from 'method-override';
 import ejsMate from "ejs-mate"; 
 import wrapAsync from "./utils/wrapAsync.js";
 import ExpressError from "./utils/ExpressError.js";
+import { listingSchema } from "./schema.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -52,6 +53,15 @@ main();
 //     res.send("Sample listing created");
 // });
 
+const validateListing = (req, res, next) => {
+    const { error } = listingSchema.validate(req.body);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(", ");
+        throw new ExpressError(400, msg);
+    } else {
+        next();
+    }
+};
 
 // Test route
 app.get("/", (req,res) =>{
@@ -70,11 +80,8 @@ app.get("/listings/new", (req, res) => {
 });
 
 // Create Listing POST route
-app.post("/listings", wrapAsync(async (req, res,next) => {
-  if(!req.body.title || !req.body.description || !req.body.price || !req.body.location || !req.body.country) {
-    return next(new ExpressError(400, "All fields are required"));
-  }
-    const newListing = new Listing(req.body);
+app.post("/listings", validateListing, wrapAsync(async (req, res,next) => {  
+    const newListing = new Listing(req.body.listing);
     await newListing.save();
     res.redirect("/listings");
   })  
@@ -95,9 +102,9 @@ app.get("/listings/:id/edit", wrapAsync(async (req, res) => {
 }));
 
 // Update route
-app.put("/listings/:id", wrapAsync(async (req, res) => {
+app.put("/listings/:id",validateListing, wrapAsync(async (req, res) => {
     let {id} = req.params;
-    await Listing.findByIdAndUpdate(id, req.body);
+    await Listing.findByIdAndUpdate(id, req.body.listing);
     res.redirect(`/listings/${id}`);
 }));
 
