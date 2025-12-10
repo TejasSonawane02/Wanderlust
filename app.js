@@ -9,7 +9,8 @@ import methodOverride from 'method-override';
 import ejsMate from "ejs-mate"; 
 import wrapAsync from "./utils/wrapAsync.js";
 import ExpressError from "./utils/ExpressError.js";
-import { listingSchema } from "./schema.js";
+import { listingSchema, reviewSchema } from "./schema.js";
+import Review from "./models/review.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -53,8 +54,20 @@ main();
 //     res.send("Sample listing created");
 // });
 
+// Validation middleware
 const validateListing = (req, res, next) => {
     const { error } = listingSchema.validate(req.body);
+    if (error) {
+        const msg = error.details.map(el => el.message).join(", ");
+        throw new ExpressError(400, msg);
+    } else {
+        next();
+    }
+};
+
+// Validation middleware for reviews
+const validateReview = (req, res, next) => {
+    const { error } = reviewSchema.validate(req.body);
     if (error) {
         const msg = error.details.map(el => el.message).join(", ");
         throw new ExpressError(400, msg);
@@ -79,7 +92,7 @@ app.get("/listings/new", (req, res) => {
     res.render("listings/new.ejs");
 });
 
-// Create Listing POST route
+// Create Listing POST route    
 app.post("/listings", validateListing, wrapAsync(async (req, res,next) => {  
     const newListing = new Listing(req.body.listing);
     await newListing.save();
@@ -90,7 +103,7 @@ app.post("/listings", validateListing, wrapAsync(async (req, res,next) => {
 //Show route
 app.get("/listings/:id", wrapAsync(async (req, res) => {
     let {id} = req.params;
-    let listing = await Listing.findById(id);
+    let listing = await Listing.findById(id).populate("reviews");
     res.render("listings/show.ejs", {listing});
 }));
 
@@ -114,6 +127,28 @@ app.delete("/listings/:id", wrapAsync(async(req, res) => {
     let deletedListing = await Listing.findByIdAndDelete(id);
     res.redirect(`/listings`);
     console.log("Deleted Listing: ", deletedListing);
+}));
+
+// Add Review route(POST)
+app.post("/listings/:id/reviews",validateReview, wrapAsync(async (req, res) => {
+    let {id} = req.params;
+    let listing = await Listing.findById(id);
+    let newReview = new Review(req.body.review);
+
+    listing.reviews.push(newReview);
+
+    await newReview.save();
+    await listing.save();
+
+    res.redirect(`/listings/${id}`);
+}));
+
+// Delete Review route
+app.delete("/listings/:id/reviews/:reviewId", wrapAsync(async (req, res) => {
+    let {id, reviewId} = req.params;
+    await Listing.findByIdAndUpdate(id, {$pull: {reviews: reviewId}}); // Remove reference from Listing
+    await Review.findByIdAndDelete(reviewId); // Delete the review document
+    res.redirect(`/listings/${id}`);
 }));
 
 // 404 handler
