@@ -9,6 +9,8 @@ import ejsMate from "ejs-mate";
 import ExpressError from "./utils/ExpressError.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+import session from "express-session";
+import flash from "connect-flash";
 
 import listings from "./routes/listing.js";
 import reviews from "./routes/review.js"; 
@@ -38,11 +40,34 @@ async function main() {
 }
 
 main();
- 
+
+app.use(session({
+    secret: "thisisasecretkey",
+    resave: false,
+    saveUninitialized: true,
+    cookie:{
+      expires: Date.now() + 7*24*60*60*1000,
+      maxAge: 7*24*60*60*1000,
+      httpOnly: true
+    }
+}));
+
+
 
 // Test route
 app.get("/", (req,res) =>{
     res.send("Route working");
+});
+
+// Flash middleware
+app.use(flash());
+
+// Middleware to set flash messages in res.locals
+app.use((req, res, next) =>{
+  res.locals.success = req.flash("success");
+  res.locals.error = req.flash("error");
+  res.locals.update = req.flash("update");
+  next();
 });
 
 // Use the routes 

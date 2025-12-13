@@ -7,8 +7,9 @@ const listingSchema = new Schema({
     description: { type: String },
     image: {
     type: String,
-    default: "https://unsplash.com/photos/brown-hut-near-body-of-water-oji_NGmBI5o",
-        set: (v) => (v === "" || !v) ? "https://unsplash.com/photos/brown-hut-near-body-of-water-oji_NGmBI5o" : v
+    // Use a direct image URL so the browser can render it (not the Unsplash page URL)
+    default: "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        set: (v) => (v === "" || !v) ? "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" : v
     },
     price: { type: Number},
     location: { type: String,  },
