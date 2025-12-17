@@ -11,9 +11,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 import session from "express-session";
 import flash from "connect-flash";
+import passport from "passport";
+import LocalStrategy from "passport-local";
+import User from "./models/user.js";
 
-import listings from "./routes/listing.js";
-import reviews from "./routes/review.js"; 
+import listingsRoutes from "./routes/listing.js";
+import reviewsRoutes from "./routes/review.js"; 
+import userRoutes from "./routes/user.js";
 
 
 //Middlewares
@@ -41,6 +45,7 @@ async function main() {
 
 main();
 
+// Session configuration
 app.use(session({
     secret: "thisisasecretkey",
     resave: false,
@@ -53,7 +58,6 @@ app.use(session({
 }));
 
 
-
 // Test route
 app.get("/", (req,res) =>{
     res.send("Route working");
@@ -61,6 +65,23 @@ app.get("/", (req,res) =>{
 
 // Flash middleware
 app.use(flash());
+
+// Passport.js configuration
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
+
+// app.get("/demouser", async (req, res) => {
+//   let fakeUser = new User({
+//     email: "demo@mail.com",
+//     username: "demouser"
+//   });
+//   let registeredUser = await User.register(fakeUser, "demopassword"); //register method hashes the password and stores it
+//   res.send(registeredUser);
+//   })
 
 // Middleware to set flash messages in res.locals
 app.use((req, res, next) =>{
@@ -71,8 +92,9 @@ app.use((req, res, next) =>{
 });
 
 // Use the routes 
-app.use("/listings", listings);
-app.use("/listings/:id/reviews", reviews);
+app.use("/listings", listingsRoutes);
+app.use("/listings/:id/reviews", reviewsRoutes);
+app.use("/", userRoutes);
 
 // 404 handler
 app.all("/*anything", (req, res, next) => {
