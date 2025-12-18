@@ -4,6 +4,7 @@ import wrapAsync from "../utils/wrapAsync.js";
 import { listingSchema} from "../schema.js"; 
 import ExpressError from "../utils/ExpressError.js";
 import Listing from "../models/listing.js";
+import { isLoggedIn } from "../middleware.js";
 
 // We have to use double dot (..) because we are in a routes folder and need to access utils and models folder which are in the parent directory.
 
@@ -25,13 +26,14 @@ router.get("/", wrapAsync(async (req, res) => {
 }));
 
 // New Listing GET route 
-router.get("/new", (req, res) => {
+router.get("/new", isLoggedIn, (req, res) => {
     res.render("listings/new.ejs");
 });
 
 // Create Listing POST route    
-router.post("/", validateListing, wrapAsync(async (req, res,next) => {  
+router.post("/",isLoggedIn, validateListing, wrapAsync(async (req, res,next) => {  
     const newListing = new Listing(req.body.listing);
+    newListing.owner = req.user._id;
     await newListing.save();
     if(!newListing){
         return next(new ExpressError(500, "Failed to create new listing"));
@@ -45,7 +47,9 @@ router.post("/", validateListing, wrapAsync(async (req, res,next) => {
 //Show route
 router.get("/:id", wrapAsync(async (req, res) => {
     let {id} = req.params;
-    let listing = await Listing.findById(id).populate("reviews");
+    let listing = await Listing.findById(id)
+    .populate("reviews")
+    .populate("owner");
     if(!listing){
         req.flash("error", "Listing not found!");
         return res.redirect("/listings");
@@ -54,7 +58,7 @@ router.get("/:id", wrapAsync(async (req, res) => {
 }));
 
 // Edit route
-router.get("/:id/edit", wrapAsync(async (req, res) => {
+router.get("/:id/edit",isLoggedIn, wrapAsync(async (req, res) => {
     let {id} = req.params;
     let listing = await Listing.findById(id);
     if(!listing){
@@ -65,7 +69,7 @@ router.get("/:id/edit", wrapAsync(async (req, res) => {
 }));
 
 // Update route
-router.put("/:id",validateListing, wrapAsync(async (req, res) => {
+router.put("/:id",isLoggedIn, validateListing, wrapAsync(async (req, res) => {
     let {id} = req.params;
     const updated = await Listing.findByIdAndUpdate(id, req.body.listing);
     if(!updated){
@@ -77,7 +81,7 @@ router.put("/:id",validateListing, wrapAsync(async (req, res) => {
 }));
 
 //Delete route
-router.delete("/:id", wrapAsync(async(req, res) => {
+router.delete("/:id",isLoggedIn, wrapAsync(async(req, res) => {
     let {id} = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     if(!deletedListing){

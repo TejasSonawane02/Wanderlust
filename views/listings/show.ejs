@@ -13,6 +13,7 @@
             <!-- Details Section -->
             <div class="card border-0 p-4">
                 <h4 class="card-title fw-bold mb-3">Details </h4>
+                <p class="card-text mb-3"><b>Owned by:</b> <%= listing.owner ? listing.owner.username : 'Unknown' %></p>
                 <p class="card-text text-secondary mb-3" style="font-size: 1.1rem;">
                     <%= listing.description %>
                 </p>

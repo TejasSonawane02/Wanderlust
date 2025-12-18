@@ -15,6 +15,7 @@ import passport from "passport";
 import LocalStrategy from "passport-local";
 import User from "./models/user.js";
 
+
 import listingsRoutes from "./routes/listing.js";
 import reviewsRoutes from "./routes/review.js"; 
 import userRoutes from "./routes/user.js";
@@ -88,6 +89,7 @@ app.use((req, res, next) =>{
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   res.locals.update = req.flash("update");
+  res.locals.currentUser = req.user;
   next();
 });
 
