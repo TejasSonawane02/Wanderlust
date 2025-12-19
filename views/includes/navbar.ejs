@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="/css/style.css">
 <nav class="navbar navbar-expand-md bg-light border-bottom shadow-sm sticky-top">
   <div class="container-fluid">
     <a class="navbar-brand" href="/"><i class="fa-solid fa-compass"></i></a>
@@ -15,6 +16,10 @@
             <a class="nav-link" href="/signup" style="padding: 8px 20px; border: 2px solid #fa424d; border-radius: 5px; margin-right: 10px; color: #fa424d;">Sign Up</a>
             <a class="nav-link" href="/login" style="padding: 8px 20px; border: 2px solid #fa424d; border-radius: 5px; margin-right: 10px; color: #fa424d;">Log in</a>
           <% } else { %>
+            <!-- Name of user -->
+            <a class="nav-link username-link" href="#" >
+              Hello, <%= currentUser.username %>
+            </a>
             <a class="nav-link" href="/logout" style="padding: 8px 20px; border: 2px solid #fa424d; border-radius: 5px; color: #fa424d;">Logout</a>
           <% } %>
         </div>

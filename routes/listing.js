@@ -1,23 +1,14 @@
 import express from "express";
 const router = express.Router();
-import wrapAsync from "../utils/wrapAsync.js";
-import { listingSchema} from "../schema.js"; 
+import wrapAsync from "../utils/wrapAsync.js"; 
 import ExpressError from "../utils/ExpressError.js";
 import Listing from "../models/listing.js";
 import { isLoggedIn } from "../middleware.js";
+import { isOwner } from "../middleware.js";
+import { validateListing } from "../middleware.js";
 
 // We have to use double dot (..) because we are in a routes folder and need to access utils and models folder which are in the parent directory.
 
-// Validation middleware
-const validateListing = (req, res, next) => {
-    const { error } = listingSchema.validate(req.body);
-    if (error) {
-        const msg = error.details.map(el => el.message).join(", ");
-        throw new ExpressError(400, msg);
-    } else {
-        next();
-    }
-};
 
 //Index route
 router.get("/", wrapAsync(async (req, res) => {
@@ -48,7 +39,7 @@ router.post("/",isLoggedIn, validateListing, wrapAsync(async (req, res,next) => 
 router.get("/:id", wrapAsync(async (req, res) => {
     let {id} = req.params;
     let listing = await Listing.findById(id)
-    .populate("reviews")
+    .populate({path:"reviews", populate: {path: "author"}})
     .populate("owner");
     if(!listing){
         req.flash("error", "Listing not found!");
@@ -58,7 +49,7 @@ router.get("/:id", wrapAsync(async (req, res) => {
 }));
 
 // Edit route
-router.get("/:id/edit",isLoggedIn, wrapAsync(async (req, res) => {
+router.get("/:id/edit",isLoggedIn, isOwner, wrapAsync(async (req, res) => {
     let {id} = req.params;
     let listing = await Listing.findById(id);
     if(!listing){
@@ -69,7 +60,7 @@ router.get("/:id/edit",isLoggedIn, wrapAsync(async (req, res) => {
 }));
 
 // Update route
-router.put("/:id",isLoggedIn, validateListing, wrapAsync(async (req, res) => {
+router.put("/:id",isLoggedIn, isOwner, validateListing, wrapAsync(async (req, res) => {
     let {id} = req.params;
     const updated = await Listing.findByIdAndUpdate(id, req.body.listing);
     if(!updated){
@@ -81,7 +72,7 @@ router.put("/:id",isLoggedIn, validateListing, wrapAsync(async (req, res) => {
 }));
 
 //Delete route
-router.delete("/:id",isLoggedIn, wrapAsync(async(req, res) => {
+router.delete("/:id",isLoggedIn, isOwner, wrapAsync(async(req, res) => {
     let {id} = req.params;
     let deletedListing = await Listing.findByIdAndDelete(id);
     if(!deletedListing){

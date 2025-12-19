@@ -24,6 +24,7 @@
                 </p>
 
                 <!-- Buttons -->
+                <% if(currentUser && currentUser._id.equals(listing.owner._id)) { %>
                 <div class="mt-4">
                     <a href="/listings/<%= listing._id %>/edit" class="btn btn-light px-4 py-2 me-2" style="background-color: #fa424d; color: white;">
                         Edit
@@ -32,9 +33,11 @@
                         <button class="btn btn-dark px-4 py-2">Delete</button>
                     </form>
                 </div>
+                <% } %>
             </div>
             <br>
             <div class="mb-4 border-0 ">
+                <% if(currentUser) { %>
                 <h4>Leave a Review</h4>
                 <form method="POST" action="/listings/<%= listing._id %>/reviews" novalidate class="needs-validation">
                     <div class="mb-3 mt-3">
@@ -54,6 +57,9 @@
                     </div>
                     <button type="submit" class="btn btn-dark px-4 py-2">Submit Review</button> 
                 </form>
+                <% } else { %>
+                    <p>Please <a href="/login">log in</a> to leave a review.</p>
+                <% } %>
                 <hr/>
                 <div>
                     <p class="fw-bold">Reviews:</p>
@@ -63,9 +69,12 @@
                                 <div class="card p-3">
                                     <div class="card-body">
                                         <h5 class="card-title">Rating: <%= review.rating %> &#9733;</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">By: <i><%= review.author.username %></i></h6>
                                         <p class="card-text"><%= review.comment %></p>
                                         <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+                                            <% if(currentUser && currentUser._id.equals(review.author._id)) { %>
                                             <button class="btn btn-sm btn-dark">Delete</button>
+                                            <% } %>
                                     </div>
                                 </div>
                             </div>      

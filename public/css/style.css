@@ -131,3 +131,11 @@ body {
     margin-top: auto;
     width: 100%;
 }
+
+.navbar-nav .nav-link.username-link {
+    color: #fa424d !important;             /* Change text color */
+    font-weight: bold;       /* Make it stand out */
+    padding-right: 15px;     /* Add some spacing */
+    text-transform: capitalize; 
+    border: none;            /* Ensure it doesn't have the red border from your buttons */
+}
