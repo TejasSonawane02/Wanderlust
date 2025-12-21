@@ -9,7 +9,7 @@
         <h3 class="text-center mb-4 fw-bold text-dark">Edit Listing</h3>
 
         <!-- Form -->
-        <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation">
+        <form id="editForm" method="POST" action="/listings/<%= listing._id %>?_method=PUT" enctype="multipart/form-data" novalidate class="needs-validation">
           
           <div class="mb-3">
             <label for="title" class="form-label">Title</label>
@@ -30,9 +30,14 @@
           </div>
 
           <div class="mb-3">
-            <label for="image" class="form-label">Image URL</label>
-            <input type="text" id="image" name="listing[image]" value="<%= listing.image %>" class="form-control" required>
-            <div class="invalid-feedback">Please provide an image URL.</div>
+            <label for="image" class="form-label">Image</label>
+            <% if (listing.image && listing.image.url) { %>
+              <div class="mb-2">
+                <img src="<%= listing.image.url %>" alt="current image" style="max-width:200px; max-height:150px;" />
+              </div>
+            <% } %>
+            <input type="file" id="image" name="listing[image]" accept="image/*" class="form-control">
+            <div class="invalid-feedback">Please provide an image file if you want to change it.</div>
           </div>
 
           <div class="row mb-4">
@@ -66,4 +71,17 @@
       color: white;
     }
   </style>
+  <script>
+    (function(){
+      const form = document.getElementById('editForm');
+      const fileInput = document.getElementById('image');
+      if(!form || !fileInput) return;
+      form.addEventListener('submit', function(e){
+        if(fileInput.files && fileInput.files.length > 0){
+          const ok = confirm('Uploading a new image will replace the current image. Continue?');
+          if(!ok) e.preventDefault();
+        }
+      });
+    })();
+  </script>
 </body>

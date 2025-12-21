@@ -4,7 +4,12 @@ import wrapAsync from "../utils/wrapAsync.js";
 import { isLoggedIn } from "../middleware.js";
 import { isOwner } from "../middleware.js";
 import { validateListing } from "../middleware.js";
-import {index, getListing, postListing, getShow, getEdit, updateListing, destroyListing} from "../controllers/listing.js"
+import {index, getListing, postListing, getShow, getEdit, updateListing, destroyListing} from "../controllers/listing.js";
+
+import multer from "multer";
+
+import { storage } from "../cloudConfig.js";    
+const upload = multer({ storage });
 
 // We have to use double dot (..) because we are in a routes folder and need to access utils and models folder which are in the parent directory.
 
@@ -16,7 +21,7 @@ router.get("/", wrapAsync(index));
 router.get("/new", isLoggedIn, getListing );
 
 // Create Listing POST route    
-router.post("/",isLoggedIn, validateListing, wrapAsync(postListing));
+router.post("/",isLoggedIn,upload.single("listing[image]"), validateListing, wrapAsync(postListing));
 
 //Show route
 router.get("/:id", wrapAsync(getShow));
@@ -25,7 +30,7 @@ router.get("/:id", wrapAsync(getShow));
 router.get("/:id/edit",isLoggedIn, isOwner, wrapAsync(getEdit));
 
 // Update route
-router.put("/:id",isLoggedIn, isOwner, validateListing, wrapAsync(updateListing));
+router.put("/:id",isLoggedIn, isOwner, upload.single("listing[image]"), validateListing, wrapAsync(updateListing));
 
 //Delete route
 router.delete("/:id",isLoggedIn, isOwner, wrapAsync(destroyListing));

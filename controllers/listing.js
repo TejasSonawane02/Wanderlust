@@ -1,5 +1,6 @@
 import ExpressError from "../utils/ExpressError.js";
 import Listing from "../models/listing.js";
+import { cloudinary } from "../cloudConfig.js";
 
 const index = async (req, res) => {
     const allListings = await Listing.find({});
@@ -10,9 +11,12 @@ const getListing = (req, res) => {
     res.render("listings/new.ejs");
 };
 
-const postListing = async (req, res,next) => {  
+const postListing = async (req, res,next) => { 
+    let url = req.file.path;
+    let filename = req.file.filename; 
     const newListing = new Listing(req.body.listing);
     newListing.owner = req.user._id;
+    newListing.image = {url, filename};
     await newListing.save();
     if(!newListing){
         return next(new ExpressError(500, "Failed to create new listing"));
@@ -46,11 +50,29 @@ const getEdit = async (req, res) => {
 
 const updateListing = async (req, res) => {
     let {id} = req.params;
-    const updated = await Listing.findByIdAndUpdate(id, req.body.listing);
+    // Update basic fields
+    const updated = await Listing.findByIdAndUpdate(id, req.body.listing, { new: true });
     if(!updated){
         req.flash("error", "Listing not found!");
         return res.redirect("/listings");
     }
+
+    // If a new image was uploaded, delete old image from Cloudinary and replace the image field
+    if (req.file) {
+        // delete previous image from Cloudinary if present
+        if (updated.image && updated.image.filename) {
+            try {
+                await cloudinary.uploader.destroy(updated.image.filename);
+            } catch (e) {
+                console.warn('Failed to delete previous image from Cloudinary:', e.message || e);
+            }
+        }
+        const url = req.file.path;
+        const filename = req.file.filename;
+        updated.image = { url, filename };
+        await updated.save();
+    }
+
     req.flash("success", "Listing Updated!");
     res.redirect(`/listings/${id}`);
 };
